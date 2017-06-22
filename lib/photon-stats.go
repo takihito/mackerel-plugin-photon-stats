@@ -67,7 +67,8 @@ func getPhotonStats(p PhotonStatsPlugin, name string) (string, error) {
 		return "", err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("HTTP status error: %d", resp.StatusCode)
+		return "", fmt.Errorf("URL:%s, Range:%s - %s, HTTP status error: %d",
+			u.String(), start.Format("2006-01-02T03:04:05"), end.Format("2006-01-02T03:04:05"), resp.StatusCode)
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
