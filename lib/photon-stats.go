@@ -33,12 +33,34 @@ var graphdef = map[string]mp.Graphs{
 			{Name: "rooms", Label: "room", Diff: false},
 		},
 	},
+	"photon.channel": {
+		Label: "Photon Channel",
+		Unit:  "integer",
+		Metrics: []mp.Metrics{
+			{Name: "channels", Label: "channel", Diff: false},
+		},
+	},
 	"photon.stats": {
 		Label: "Photon Stats",
 		Unit:  "integer",
 		Metrics: []mp.Metrics{
 			{Name: "ccu", Label: "ccu", Diff: false},
 			{Name: "rejects", Label: "reject", Diff: false},
+		},
+	},
+	"photon.message": {
+		Label: "Photon Message",
+		Unit:  "integer",
+		Metrics: []mp.Metrics{
+			{Name: "messages", Label: "message", Diff: false},
+		},
+	},
+	"photon.bandwidth": {
+		Label: "Photon Bandwidth",
+		Unit:  "integer",
+		Metrics: []mp.Metrics{
+			{Name: "bandwidth", Label: "bandwidth", Diff: false},
+			{Name: "bandwidthchat", Label: "bandwidth chat", Diff: false},
 		},
 	},
 }
@@ -67,7 +89,8 @@ func getPhotonStats(p PhotonStatsPlugin, name string) (string, error) {
 		return "", err
 	}
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("HTTP status error: %d", resp.StatusCode)
+		return "", fmt.Errorf("URL:%s, Range:%s - %s, HTTP status error: %d",
+			u.String(), start.Format("2006-01-02T03:04:05"), end.Format("2006-01-02T03:04:05"), resp.StatusCode)
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	resp.Body.Close()
@@ -81,11 +104,23 @@ func getPhotonStats(p PhotonStatsPlugin, name string) (string, error) {
 func (u PhotonStatsPlugin) FetchMetrics() (stats map[string]interface{}, err error) {
 	ccu, err := getPhotonStats(u, "ccu")
 	rooms, err := getPhotonStats(u, "rooms")
+	channels, err := getPhotonStats(u, "channels")
 	rejects, err := getPhotonStats(u, "rejects")
+	messages, err := getPhotonStats(u, "messages")
+	bandwidth, err := getPhotonStats(u, "bandwidth")
+	bandwidthchat, err := getPhotonStats(u, "bandwidthchat")
 	if err != nil {
 		return nil, err
 	}
-	return map[string]interface{}{"rooms": rooms, "ccu": ccu, "rejects": rejects}, nil
+	return map[string]interface{}{
+		"ccu":           ccu,
+		"rooms":         rooms,
+		"channels":      channels,
+		"rejects":       rejects,
+		"messages":      messages,
+		"bandwidth":     bandwidth,
+		"bandwidthchat": bandwidthchat,
+	}, nil
 }
 
 // GraphDefinition interface for mackerelplugin
