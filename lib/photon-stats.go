@@ -23,6 +23,7 @@ type PhotonStatsPlugin struct {
 	Region     string
 	Token      string
 	SecondsAgo int
+	Log        bool
 }
 
 var graphdef = map[string]mp.Graphs{
@@ -78,6 +79,11 @@ func getPhotonStats(p PhotonStatsPlugin, name string) (string, error) {
 	q.Set("start", start.Format("2006-01-02T03:04:05"))
 	q.Set("end", end.Format("2006-01-02T03:04:05"))
 	u.RawQuery = q.Encode()
+	if p.Log {
+		log.Printf("request_url:%s", u.String())
+		log.Printf("appid:%s", p.AppId)
+		log.Printf("token:%s", p.Token)
+	}
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return "", err
@@ -96,6 +102,9 @@ func getPhotonStats(p PhotonStatsPlugin, name string) (string, error) {
 	resp.Body.Close()
 	if err != nil {
 		return "", err
+	}
+	if p.Log {
+		log.Printf("body:%s", string(body[:]))
 	}
 	return string(body[:]), nil
 }
@@ -134,6 +143,7 @@ func Do() {
 	optUrl := flag.String("url", photonUrl, "Photon analytivs api url")
 	optRegion := flag.String("region", photonRegion, "region")
 	optToken := flag.String("token", "", "Authorization Token")
+	optLog := flag.Bool("log", false, "Use logging")
 	flag.Parse()
 
 	var photon PhotonStatsPlugin
@@ -142,6 +152,7 @@ func Do() {
 	photon.Url = *optUrl
 	photon.Region = *optRegion
 	photon.Token = *optToken
+	photon.Log = *optLog
 
 	helper := mp.NewMackerelPlugin(photon)
 	helper.Run()
