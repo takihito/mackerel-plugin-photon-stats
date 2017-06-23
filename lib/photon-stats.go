@@ -23,6 +23,8 @@ type PhotonStatsPlugin struct {
 	Region     string
 	Token      string
 	SecondsAgo int
+	Timeout    int
+	Log        bool
 }
 
 var graphdef = map[string]mp.Graphs{
@@ -72,30 +74,42 @@ func getPhotonStats(p PhotonStatsPlugin, name string) (string, error) {
 		log.Fatal(err)
 	}
 	q := u.Query()
-	now := time.Now()
-	end := now.UTC()
+	end := time.Now()
 	start := end.Add(-time.Duration(p.SecondsAgo) * time.Second)
-	q.Set("start", start.Format("2006-01-02T03:04:05"))
-	q.Set("end", end.Format("2006-01-02T03:04:05"))
+	q.Set("start", start.UTC().Format("2006-01-02T03:04:05"))
+	q.Set("end", end.UTC().Format("2006-01-02T03:04:05"))
 	u.RawQuery = q.Encode()
+	if p.Log {
+		log.Printf("request_url:%s", u.String())
+		log.Printf("appid:%s", p.AppId)
+		log.Printf("token:%s", p.Token)
+	}
 	req, err := http.NewRequest("GET", u.String(), nil)
 	if err != nil {
 		return "", err
 	}
 	req.Header.Set("Authorization", p.Token)
 
-	resp, err := http.DefaultClient.Do(req)
+	client := &http.Client{Timeout: time.Duration(p.Timeout) * time.Second}
+	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
 	}
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("URL:%s, Range:%s - %s, HTTP status error: %d",
 			u.String(), start.Format("2006-01-02T03:04:05"), end.Format("2006-01-02T03:04:05"), resp.StatusCode)
 	}
 	body, err := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
+	//resp.Body.Close()
 	if err != nil {
 		return "", err
+	}
+	if p.Log {
+		log.Printf("URL:%s, Range:%s - %s, HTTP status error: %d",
+			u.String(), start.Format("2006-01-02T03:04:05"), end.Format("2006-01-02T03:04:05"), resp.StatusCode)
+		log.Printf("status:%d", resp.StatusCode)
+		log.Printf("body:%s", string(body[:]))
 	}
 	return string(body[:]), nil
 }
@@ -134,6 +148,8 @@ func Do() {
 	optUrl := flag.String("url", photonUrl, "Photon analytivs api url")
 	optRegion := flag.String("region", photonRegion, "region")
 	optToken := flag.String("token", "", "Authorization Token")
+	optLog := flag.Bool("log", false, "Use logging")
+	optTimeout := flag.Int("timeout", 10, "timeout")
 	flag.Parse()
 
 	var photon PhotonStatsPlugin
@@ -142,6 +158,8 @@ func Do() {
 	photon.Url = *optUrl
 	photon.Region = *optRegion
 	photon.Token = *optToken
+	photon.Log = *optLog
+	photon.Timeout = *optTimeout
 
 	helper := mp.NewMackerelPlugin(photon)
 	helper.Run()

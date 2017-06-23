@@ -6,7 +6,7 @@ Photon Status custom metrics plugin for mackerel.io agent.
 ## Synopsis
 
 ```shell
-mackerel-plugin-photon-stats [-region=<region>] [-appid=<application id>] [-token=<auth token>]
+mackerel-plugin-photon-stats [-region=<region>] [-appid=<application id>] [-token=<auth token>] [-timeout=<seconds>] [-log] 
 ```
 
 ## Reference documentRequirements
