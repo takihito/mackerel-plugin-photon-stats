@@ -76,8 +76,8 @@ func getPhotonStats(p PhotonStatsPlugin, name string) (string, error) {
 	q := u.Query()
 	end := time.Now()
 	start := end.Add(-time.Duration(p.SecondsAgo) * time.Second)
-	q.Set("start", start.UTC().Format("2006-01-02T03:04:05"))
-	q.Set("end", end.UTC().Format("2006-01-02T03:04:05"))
+	q.Set("start", start.UTC().Format("2006-01-02T15:04:05"))
+	q.Set("end", end.UTC().Format("2006-01-02T15:04:05"))
 	u.RawQuery = q.Encode()
 	if p.Log {
 		log.Printf("request_url:%s", u.String())
@@ -97,17 +97,18 @@ func getPhotonStats(p PhotonStatsPlugin, name string) (string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("URL:%s, Range:%s - %s, HTTP status error: %d",
-			u.String(), start.Format("2006-01-02T03:04:05"), end.Format("2006-01-02T03:04:05"), resp.StatusCode)
+		return "", fmt.Errorf("URL:%s, Range:%s(%s) - %s(%s), HTTP status error: %d",
+			u.String(), start.Format("2006-01-02T15:04:05"), start.UTC().Format("2006-01-02T15:04:05"),
+			end.Format("2006-01-02T15:04:05"), end.UTC().Format("2006-01-02T15:04:05"), resp.StatusCode)
 	}
 	body, err := ioutil.ReadAll(resp.Body)
-	//resp.Body.Close()
 	if err != nil {
 		return "", err
 	}
 	if p.Log {
-		log.Printf("URL:%s, Range:%s - %s, HTTP status error: %d",
-			u.String(), start.Format("2006-01-02T03:04:05"), end.Format("2006-01-02T03:04:05"), resp.StatusCode)
+		log.Printf("URL:%s, Range:%s(%s) - %s(%s), HTTP status error: %d",
+			u.String(), start.Format("2006-01-02T15:04:05"), start.UTC().Format("2006-01-02T15:04:05"),
+			end.Format("2006-01-02T15:04:05"), end.UTC().Format("2006-01-02T15:04:05"), resp.StatusCode)
 		log.Printf("status:%d", resp.StatusCode)
 		log.Printf("body:%s", string(body[:]))
 	}
