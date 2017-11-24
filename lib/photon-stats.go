@@ -3,12 +3,13 @@ package photonstats
 import (
 	"flag"
 	"fmt"
-	mp "github.com/mackerelio/go-mackerel-plugin-helper"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"time"
+
+	mp "github.com/mackerelio/go-mackerel-plugin-helper"
 )
 
 const (
@@ -67,30 +68,30 @@ var graphdef = map[string]mp.Graphs{
 	},
 }
 
-func getPhotonStats(p PhotonStatsPlugin, name string) (string, error) {
-	endPointUrl := p.Url + p.AppId + "/" + p.Region + "/" + name
-	u, err := url.Parse(endPointUrl)
-	if err != nil {
-		log.Fatal(err)
-	}
-	q := u.Query()
-	end := time.Now()
-	start := end.Add(-time.Duration(p.SecondsAgo) * time.Second)
-	q.Set("start", start.UTC().Format("2006-01-02T15:04:05"))
-	q.Set("end", end.UTC().Format("2006-01-02T15:04:05"))
-	u.RawQuery = q.Encode()
-	if p.Log {
-		log.Printf("request_url:%s", u.String())
-		log.Printf("appid:%s", p.AppId)
-		log.Printf("token:%s", p.Token)
-	}
-	req, err := http.NewRequest("GET", u.String(), nil)
+func (u PhotonStatsPlugin) getPhotonStats(name string) (string, error) {
+	endPointUrl := u.Url + u.AppId + "/" + u.Region + "/" + name
+	photonUrl, err := url.Parse(endPointUrl)
 	if err != nil {
 		return "", err
 	}
-	req.Header.Set("Authorization", p.Token)
+	q := photonUrl.Query()
+	end := time.Now()
+	start := end.Add(-time.Duration(u.SecondsAgo) * time.Second)
+	q.Set("start", start.UTC().Format("2006-01-02T15:04:05"))
+	q.Set("end", end.UTC().Format("2006-01-02T15:04:05"))
+	photonUrl.RawQuery = q.Encode()
+	if u.Log {
+		log.Printf("request_url:%s", photonUrl.String())
+		log.Printf("appid:%s", u.AppId)
+		log.Printf("token:%s", u.Token)
+	}
+	req, err := http.NewRequest("GET", photonUrl.String(), nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Authorization", u.Token)
 
-	client := &http.Client{Timeout: time.Duration(p.Timeout) * time.Second}
+	client := &http.Client{Timeout: time.Duration(u.Timeout) * time.Second}
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
@@ -98,16 +99,16 @@ func getPhotonStats(p PhotonStatsPlugin, name string) (string, error) {
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		return "", fmt.Errorf("URL:%s, Range:%s(%s) - %s(%s), HTTP status error: %d",
-			u.String(), start.Format("2006-01-02T15:04:05"), start.UTC().Format("2006-01-02T15:04:05"),
+			photonUrl.String(), start.Format("2006-01-02T15:04:05"), start.UTC().Format("2006-01-02T15:04:05"),
 			end.Format("2006-01-02T15:04:05"), end.UTC().Format("2006-01-02T15:04:05"), resp.StatusCode)
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", err
 	}
-	if p.Log {
+	if u.Log {
 		log.Printf("URL:%s, Range:%s(%s) - %s(%s), HTTP status error: %d",
-			u.String(), start.Format("2006-01-02T15:04:05"), start.UTC().Format("2006-01-02T15:04:05"),
+			photonUrl.String(), start.Format("2006-01-02T15:04:05"), start.UTC().Format("2006-01-02T15:04:05"),
 			end.Format("2006-01-02T15:04:05"), end.UTC().Format("2006-01-02T15:04:05"), resp.StatusCode)
 		log.Printf("status:%d", resp.StatusCode)
 		log.Printf("body:%s", string(body[:]))
@@ -117,15 +118,35 @@ func getPhotonStats(p PhotonStatsPlugin, name string) (string, error) {
 
 // FetchMetrics interface for mackerelplugin
 func (u PhotonStatsPlugin) FetchMetrics() (stats map[string]interface{}, err error) {
-	ccu, err := getPhotonStats(u, "ccu")
-	rooms, err := getPhotonStats(u, "rooms")
-	channels, err := getPhotonStats(u, "channels")
-	rejects, err := getPhotonStats(u, "rejects")
-	messages, err := getPhotonStats(u, "messages")
-	bandwidth, err := getPhotonStats(u, "bandwidth")
-	bandwidthchat, err := getPhotonStats(u, "bandwidthchat")
+	ccu, err := u.getPhotonStats("ccu")
 	if err != nil {
-		return nil, err
+		log.Printf("ccu_error:%s", err)
+	}
+	rooms, err := u.getPhotonStats("rooms")
+	if err != nil {
+		log.Printf("rooms_error:%s", err)
+	}
+	// NOTE Chatアプリケーションでのみ表示されます
+	// 非Chatアプリはエラーステータスが返ります
+	channels, err := u.getPhotonStats("channels")
+	if err != nil {
+		log.Printf("channels_error:%s", err)
+	}
+	rejects, err := u.getPhotonStats("rejects")
+	if err != nil {
+		log.Printf("reject_error:%s", err)
+	}
+	messages, err := u.getPhotonStats("messages")
+	if err != nil {
+		log.Printf("messages_error:%s", err)
+	}
+	bandwidth, err := u.getPhotonStats("bandwidth")
+	if err != nil {
+		log.Printf("bandwidth_error:%s", err)
+	}
+	bandwidthchat, err := u.getPhotonStats("bandwidthchat")
+	if err != nil {
+		log.Printf("bandwidthchat_error:%s", err)
 	}
 	return map[string]interface{}{
 		"ccu":           ccu,
