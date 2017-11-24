@@ -29,6 +29,7 @@ minor-vaersionup:
 		gobump show -r
 
 crossbuild: devel-deps
+		mkdir -p ./dist
 		goxc -pv=v$(shell gobump show -r) \
 			 -d=./dist -arch=amd64 -os=linux,darwin,windows \
 				-tasks=clean-destination,xc,archive,rmbin
