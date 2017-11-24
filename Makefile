@@ -34,4 +34,7 @@ crossbuild: devel-deps
 			 -d=./dist -arch=amd64 -os=linux,darwin,windows \
 				-tasks=clean-destination,xc,archive,rmbin
 
+release:
+	ghr v$(shell gobump show -r) dist/v$(shell gobump show -r)
+
 .PHONY: test deps devel-deps lint cover crossbuild release
