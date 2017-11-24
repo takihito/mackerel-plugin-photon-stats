@@ -30,8 +30,13 @@ minor-vaersionup:
 
 crossbuild: devel-deps
 		mkdir -p ./dist
-		goxc -pv=v$(shell gobump show -r) \
-			 -d=./dist -arch=amd64 -os=linux,darwin,windows \
-				-tasks=clean-destination,xc,archive,rmbin
+		goxc 
+
+release:
+	ghr -u takihito -r mackerel-plugin-photon-stats v$(shell gobump show -r) dist/snapshot/
+
+install:
+	mkr plugin install takihito/mackerel-plugin-photon-stats@v$(shell gobump show -r)
 
 .PHONY: test deps devel-deps lint cover crossbuild release
+
