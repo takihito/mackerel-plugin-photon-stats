@@ -19,11 +19,6 @@ please check mackerel-plugin-photon-stats/releases
 mkr plugin install takihito/mackerel-plugin-photon-stats@v0.1.0
 ```
 
-## Reference documentRequirements
-
-- [Photon Analytics API : Introduction](http://doc-api.photonengine.com/ja-jp/analytics-api/current/intro.html)
-- [Photon Analytics API : Detail](http://doc-api.photonengine.com/ja-jp/analytics-api/current/)
-
 ## Example of mackerel-agent.conf
 
 ```
