@@ -3,19 +3,23 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:b08d6bc27823e2f8f041159c1cff9784de94e064952494abebc540464c67afd6"
   name = "github.com/mackerelio/go-mackerel-plugin-helper"
   packages = ["."]
+  pruneopts = ""
   revision = "bb755efd723cb7876b3216f12331d241a82dfc1d"
 
 [[projects]]
   branch = "master"
+  digest = "1:497a88a448e2ab73c9503904c4c68a9f1893b36079b835cf6bed0c15a68a0292"
   name = "github.com/mackerelio/golib"
   packages = ["pluginutil"]
+  pruneopts = ""
   revision = "f8af1a14676acd67ed7bd1c48c4e95d978b9ce4d"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "25522aac6675f10bfaae482e993852d1d56c340f68fe2c53f599f03360e94670"
+  input-imports = ["github.com/mackerelio/go-mackerel-plugin-helper"]
   solver-name = "gps-cdcl"
   solver-version = 1
