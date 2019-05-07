@@ -13,19 +13,21 @@ import (
 )
 
 const (
-	photonUrl    = "https://counter.photonengine.com/Counter/api/data/app/"
-	photonRegion = "jp"
-	secondsAgo   = 90
+	photonUrl     = "https://counter.photonengine.com/Counter/api/data/app/"
+	photonRegion  = "jp"
+	endSecondsAgo = 180
+	secondsAgo    = 90
 )
 
 type PhotonStatsPlugin struct {
-	Url        string
-	AppId      string
-	Region     string
-	Token      string
-	SecondsAgo int
-	Timeout    int
-	Log        bool
+	Url           string
+	AppId         string
+	Region        string
+	Token         string
+	EndSecondsAgo int
+	SecondsAgo    int
+	Timeout       int
+	Log           bool
 }
 
 var graphdef = map[string]mp.Graphs{
@@ -75,7 +77,8 @@ func (u PhotonStatsPlugin) getPhotonStats(name string) (string, error) {
 		return "", err
 	}
 	q := photonUrl.Query()
-	end := time.Now()
+	now := time.Now()
+	end := now.Add(-time.Duration(u.EndSecondsAgo) * time.Second)
 	start := end.Add(-time.Duration(u.SecondsAgo) * time.Second)
 	q.Set("start", start.UTC().Format("2006-01-02T15:04:05"))
 	q.Set("end", end.UTC().Format("2006-01-02T15:04:05"))
@@ -165,6 +168,7 @@ func (u PhotonStatsPlugin) GraphDefinition() map[string](mp.Graphs) {
 }
 
 func Do() {
+	optEndSecondsAgo := flag.Int("end_seconds", endSecondsAgo, "seconds")
 	optSecondsAgo := flag.Int("seconds", secondsAgo, "seconds")
 	optAppid := flag.String("appid", "", "App Id")
 	optUrl := flag.String("url", photonUrl, "Photon analytivs api url")
@@ -175,6 +179,7 @@ func Do() {
 	flag.Parse()
 
 	var photon PhotonStatsPlugin
+	photon.EndSecondsAgo = *optEndSecondsAgo
 	photon.SecondsAgo = *optSecondsAgo
 	photon.AppId = *optAppid
 	photon.Url = *optUrl
