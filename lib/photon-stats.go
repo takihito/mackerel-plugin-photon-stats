@@ -15,7 +15,7 @@ import (
 const (
 	photonUrl     = "https://counter.photonengine.com/Counter/api/data/app/"
 	photonRegion  = "jp"
-	endSecondsAgo = 300
+	endSecondsAgo = 180
 	secondsAgo    = 90
 )
 
