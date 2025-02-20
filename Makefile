@@ -1,42 +1,26 @@
-ifdef update
-	u=-u
-endif
+GIT_VER ?= $(shell git describe --tags | sed -e 's/-/+/')
+DATE := $(shell date +%Y-%m-%dT%H:%M:%S%z)
+export GO111MODULE := on
 
-deps:
-		go get ${u} github.com/golang/dep/cmd/dep
-		dep ensure
+.PHONY: test build
 
-devel-deps: deps
-		go get ${u} github.com/golang/lint/golint
-		go get ${u} github.com/mattn/goveralls
-		go get ${u} github.com/motemen/gobump
-		go get ${u} github.com/laher/goxc
-		go get ${u} github.com/Songmu/ghch
+init_mod:
+	go mod init github.com/takihito/mackerel-plugin-photon-stats
+	go get github.com/mackerelio/go-mackerel-plugin-helper
 
-test: deps
-		go test
+build: 
+	mkdir -p bin
+	go build -ldflags "-s -w -X main.Version=${GIT_VER} -X main.buildDate=${DATE}" -trimpath -o bin/mackerel-plugin-photon-stats
 
-lint: devel-deps
-		go vet
-		golint -set_exit_status
+test:
+	go test -race
 
-major-vaersionup:
-		gobump major -w
-		gobump show -r
+# use goreleaser
+# brew install goreleaser/tap/goreleaser
 
-minor-vaersionup:
-		gobump minor -w
-		gobump show -r
+check/release:
+	goreleaser check
 
-crossbuild: devel-deps
-		mkdir -p ./dist
-		goxc 
-
-release:
-	ghr -u takihito -r mackerel-plugin-photon-stats v$(shell gobump show -r) dist/snapshot/
-
-install:
-	mkr plugin install takihito/mackerel-plugin-photon-stats@v$(shell gobump show -r)
-
-.PHONY: test deps devel-deps lint cover crossbuild release
+build/release:
+	goreleaser release --snapshot --clean
 

@@ -16,3 +16,5 @@
 .glide/
 
 
+# Added by goreleaser init:
+dist/

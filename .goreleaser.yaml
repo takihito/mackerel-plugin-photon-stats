@@ -1,0 +1,26 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    ldflags:
+      - -s -w
+      - -X main.Version=v{{.Version}} -X main.Revision={{.Commit}} -X main.BuildDate={{.Date}}
+archives:
+  - format_overrides:
+    - formats: [ 'zip' ]
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
