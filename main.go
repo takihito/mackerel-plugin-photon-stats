@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/takihito/mackerel-plugin-photon-stats/lib"
+	photonstats "github.com/takihito/mackerel-plugin-photon-stats/lib"
 )
 
 const version = "0.4.0"
