@@ -4,13 +4,13 @@ name: goreleaser
 #   pull_request:
 #   push:
 on:
-    workflow_dispatch:
-      inputs:
-        exec:
-          description: '更新します'
-          type: boolean
-          required: true
-          default: false
+   workflow_dispatch:
+     inputs:
+       exec:
+         description: '更新します'
+         type: boolean
+         required: true
+         default: false
 
 permissions:
   contents: write
