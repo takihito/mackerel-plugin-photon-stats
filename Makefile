@@ -15,8 +15,8 @@ build:
 test:
 	go test -race
 
-# use goreleaser
-# brew install goreleaser/tap/goreleaser
+add_release_version_tag:
+	export RELEASE_VERSION=`go run . version | cut -f 2 -d " "` && git tag -a v$$RELEASE_VERSION -m "Release v$$RELEASE_VERSION" && git push origin v$$RELEASE_VERSION
 
 check/release:
 	goreleaser check
