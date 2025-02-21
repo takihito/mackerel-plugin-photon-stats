@@ -1,8 +1,5 @@
 name: goreleaser
 
-# on:
-#   pull_request:
-#   push:
 on:
    workflow_dispatch:
      inputs:
